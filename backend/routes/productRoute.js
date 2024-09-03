@@ -15,6 +15,6 @@ router.post("/", protect, upload.single("image"), createProduct);
 router.get("/", protect, getProducts);
 router.get("/:id", protect, getProduct);
 router.delete("/:id", protect, deleteProduct);
-router.put("/:id", protect, updateProduct);
+router.patch("/:id", protect, upload.single("image"), updateProduct);
 
 module.exports = router;

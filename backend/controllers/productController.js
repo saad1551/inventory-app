@@ -92,8 +92,9 @@ const deleteProduct = asyncHandler(async(req, res) => {
 });
 
 const updateProduct = asyncHandler(async(req, res) => {
+    const {name, sku, category, quantity, price, description} = req.body;
+
     const {id} = req.params;
-    const {name, category, price, quantity, description} = req.body;
 
     const product = await Product.findById(id);
 
@@ -107,16 +108,50 @@ const updateProduct = asyncHandler(async(req, res) => {
         throw new Error("User not authorized");
     }
 
-    product.name = name || product.name;
-    product.category = category || product.category;
-    product.price = price || product.price;
-    product.quantity = quantity || product.quantity;
-    product.description = description || product.description;
+
+    // Handle image upload
+    let fileData = {};
+
+    if (req.file) {
+        // Save image to cloudinary
+        let uploadedFile;
+        try {
+            uploadedFile = await cloudinary.uploader.upload(req.file.path,
+                {folder: "PInvent-app", resouce_type: "image"}
+            )
+        } catch (error) {
+            res.status(500);
+            throw new Error("Image could not be uploaded");
+        }
+
+        fileData = {
+            fileName: req.file.originalname,
+            filePath: uploadedFile.secure_url,
+            fileType: req.file.mimetype,
+            fileSize: fileSizeFormatter(req.file.size),
+        }
+    }
+
+    // Update Product
+    const updatedProduct = await Product.findByIdAndUpdate(
+        {_id: id},
+        {
+            name, 
+            category,
+            quantity,
+            price,
+            description,
+            image: Object.keys(fileData).length === 0 ? product?.image : 
+            fileData
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    )
 
 
-    await product.save();
-
-    res.status(200).json({message: "Product updated successfully"});
+    res.status(201).json(updatedProduct);
 });
 
 module.exports = {
