@@ -13,9 +13,7 @@ const storage = multer.diskStorage({
 // Specify file format that can be saved
 function fileFilter (req, file, cb) {
     if (
-        file.mimetype === "image/png" ||
-        file.mimetype === "image/jpg" ||
-        file.mimetype === "image/jpeg"
+        file.mimetype === "pdf"
     ) {
         cb(null, true);
     } else {
